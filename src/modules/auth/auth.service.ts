@@ -1,7 +1,7 @@
 import { is } from "zod/locales";
 import { User } from "../../../prisma/generated/prisma/client";
 import { prisma } from "../../lib/prisma";
-import { JwtPayload, UserResponse } from "../../types";
+import { JwtPayload, AuthResponse } from "../../types";
 import AppError from "../../utils/appError";
 import { comparePassword, hashPassword } from "../../utils/bcrypt";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/token";
@@ -11,11 +11,11 @@ export const authService = {
   /**
    * Registers a new user
    * @param {RegisterInput} data - User registration data
-   * @returns {Promise<UserResponse>} The created user and authentication tokens
+   * @returns {Promise<AuthResponse>} The created user and authentication tokens
    */
-  async register(data: RegisterInput): Promise<UserResponse> {
-    const existingUser = await prisma.user.findUnique({
-      where: { email: data.email },
+  async register(data: RegisterInput): Promise<AuthResponse> {
+    const existingUser = await prisma.user.findFirst({
+      where: { email: data.email, deletedAt: null },
     });
 
     if (existingUser) {
@@ -62,13 +62,19 @@ export const authService = {
    * Logs in a user with email and password
    * @param email 
    * @param password 
-   * @returns {Promise<UserResponse>} The authenticated user and new authentication tokens
+   * @returns {Promise<AuthResponse>} The authenticated user and new authentication tokens
    */
-  async login(data: LoginInput): Promise<UserResponse> {
-    const user = await prisma.user.findUnique({
-      where: { email: data.email },
+  async login(data: LoginInput): Promise<AuthResponse> {
+    const user = await prisma.user.findFirst({
+      where: { email: data.email, deletedAt: null },
     });
     
+    if (!user) {
+      throw AppError.badRequest(
+        "Invalid credentials",
+        "INVALID_CREDENTIALS",
+      );
+    }
 
     if(!user?.email){
       throw AppError.badRequest(
@@ -77,12 +83,6 @@ export const authService = {
       );
     }
 
-    if (!user) {
-      throw AppError.badRequest(
-        "Invalid credentials",
-        "INVALID_CREDENTIALS",
-      );
-    }
 
     if (!user.isActive) {
       throw AppError.forbidden("User account is inactive", "INACTIVE_USER");
