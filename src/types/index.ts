@@ -18,10 +18,31 @@ export interface JwtPayload {
   role: Role;
 }
 
-export interface UserResponse{
+export interface AuthResponse{
   user: Partial<User>;
   accessToken: string;
   refreshToken: string;
+}
+
+//User
+export interface IUser {
+  id: string;
+  email: string;
+  name: string | null;
+  role: Role;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IUsers {
+  users: IUser[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+   };
 }
 
 declare global {
