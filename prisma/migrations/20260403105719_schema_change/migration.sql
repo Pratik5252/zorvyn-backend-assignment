@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "role" SET DEFAULT 'ADMIN',
+ALTER COLUMN "updatedAt" DROP NOT NULL;
