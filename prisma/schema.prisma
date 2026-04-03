@@ -22,22 +22,27 @@ enum RecordType {
 }
 model User {
   id        String   @id @default(uuid())
-  email     String   @unique
+  email     String   
   password  String
   name      String?
-  role      Role     @default(ADMIN)
+  role      Role     @default(VIEWER)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
-  record FinancialRecord[]
+  records FinancialRecord[]
+
+  @@index([deletedAt])
+  @@index([createdAt])
+  @@index([role])
 }
 
 model FinancialRecord {
   id String  @id @default(uuid())
   amount Decimal @db.Decimal(10, 2)
   type RecordType
-  category String
+  categoryId String
   date DateTime
   description String?
   createdBy String
@@ -47,4 +52,20 @@ model FinancialRecord {
   updatedAt DateTime @updatedAt
 
   creator User @relation(fields: [createdBy], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([createdBy])
+  @@index([type])
+  @@index([date])
+  @@index([deletedAt])
+  @@index([categoryId])
+}
+
+model Category {
+  id        String            @id @default(uuid())
+  name      String            @unique
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  records   FinancialRecord[]
 }
