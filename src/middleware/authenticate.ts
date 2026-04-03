@@ -3,8 +3,8 @@ import AppError from "../utils/appError";
 import { verifyAccessToken } from "../utils/token";
 
 const authenticate = (
-    res: Response,
     req: Request,
+    res: Response,
     next: NextFunction
 ) => {
     try {
@@ -16,8 +16,8 @@ const authenticate = (
 
         const token = authHeader.split(' ')[1];
 
-        if(token !== process.env.JWT_ACCESS_TOKEN_SECRET){
-            throw AppError.unauthorized('Invalid token');
+        if(token === 'undefined' || !token){
+            throw AppError.unauthorized('Invalid token provided');
         }
 
         const decoded = verifyAccessToken(token);
@@ -25,7 +25,11 @@ const authenticate = (
         next();
 
     } catch (error) {
-        next(error);
+        if (error instanceof AppError) {
+            return next(error);
+        }else {
+            return next(AppError.unauthorized('Invalid token', 'INVALID_TOKEN'));
+        }
     }
 }
 

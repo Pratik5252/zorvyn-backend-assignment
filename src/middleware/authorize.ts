@@ -4,9 +4,13 @@ import AppError from "../utils/appError";
 
 const authorize = (...role: Role[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
+
+    if(!req.user){
+      throw AppError.unauthorized("User not authenticated", "UNAUTHENTICATED");
+    }
     if (!role.includes(req.user.role)) {
       throw AppError.forbidden(
-        "You do not have permission to access this resource",
+        "You do not have permission to access this resource"
       );
     }
     next();
